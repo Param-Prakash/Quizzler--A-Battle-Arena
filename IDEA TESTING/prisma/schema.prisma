@@ -1,0 +1,204 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  username      String   @unique
+  email         String   @unique
+  password      String
+  level         Int      @default(1)
+  xp            Int      @default(0)
+  coins         Int      @default(100)
+  avatar        String   @default("default")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  battleHistory BattleParticipant[]
+  cosmetics     UserCosmetic[]
+  stats         UserStats?
+
+  @@index([username])
+  @@index([email])
+}
+
+model UserStats {
+  id              String @id @default(cuid())
+  userId          String @unique
+  user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  totalGamesPlayed     Int @default(0)
+  totalWins            Int @default(0)
+  totalLosses          Int @default(0)
+  totalDraws           Int @default(0)
+  winStreak            Int @default(0)
+  bestWinStreak        Int @default(0)
+  totalCorrectAnswers  Int @default(0)
+  totalQuestionsAnswered Int @default(0)
+  averageResponseTime  Float @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  question    String
+  options     String[] // Store as JSON array
+  correctAnswer Int    // Index of correct option (0-3)
+  topic       String
+  difficulty  Difficulty
+  explanation String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  battleQuestions BattleQuestion[]
+
+  @@index([topic])
+  @@index([difficulty])
+}
+
+model Battle {
+  id          String       @id @default(cuid())
+  roomCode    String       @unique
+  topic       String
+  difficulty  Difficulty
+  status      BattleStatus @default(WAITING)
+  questionCount Int        @default(5)
+  startedAt   DateTime?
+  endedAt     DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  participants BattleParticipant[]
+  questions    BattleQuestion[]
+
+  @@index([roomCode])
+  @@index([status])
+}
+
+model BattleParticipant {
+  id          String  @id @default(cuid())
+  battleId    String
+  battle      Battle  @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  score       Int     @default(0)
+  correctAnswers Int  @default(0)
+  position    Int?    // 1 for winner, 2 for loser, null for draw
+  xpGained    Int     @default(0)
+  coinsGained Int     @default(0)
+  
+  joinedAt    DateTime @default(now())
+
+  // Relations
+  answers     BattleAnswer[]
+
+  @@unique([battleId, userId])
+  @@index([userId])
+}
+
+model BattleQuestion {
+  id          String   @id @default(cuid())
+  battleId    String
+  battle      Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id])
+  
+  orderIndex  Int      // Question order in battle (0-4 for 5 questions)
+  
+  // Relations
+  answers     BattleAnswer[]
+
+  @@unique([battleId, orderIndex])
+  @@index([battleId])
+}
+
+model BattleAnswer {
+  id                  String            @id @default(cuid())
+  battleParticipantId String
+  participant         BattleParticipant @relation(fields: [battleParticipantId], references: [id], onDelete: Cascade)
+  battleQuestionId    String
+  battleQuestion      BattleQuestion    @relation(fields: [battleQuestionId], references: [id], onDelete: Cascade)
+  
+  selectedAnswer      Int               // Index of selected option (0-3)
+  isCorrect           Boolean
+  responseTime        Int               // in milliseconds
+  answeredAt          DateTime          @default(now())
+
+  @@unique([battleParticipantId, battleQuestionId])
+  @@index([battleParticipantId])
+}
+
+model Cosmetic {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  type        CosmeticType
+  rarity      Rarity
+  coinCost    Int
+  description String?
+  imageUrl    String
+  createdAt   DateTime       @default(now())
+
+  // Relations
+  users       UserCosmetic[]
+
+  @@index([type])
+  @@index([rarity])
+}
+
+model UserCosmetic {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cosmeticId  String
+  cosmetic    Cosmetic @relation(fields: [cosmeticId], references: [id], onDelete: Cascade)
+  
+  isEquipped  Boolean  @default(false)
+  purchasedAt DateTime @default(now())
+
+  @@unique([userId, cosmeticId])
+  @@index([userId])
+}
+
+// Enums
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum BattleStatus {
+  WAITING      // Waiting for players
+  READY        // Both players joined
+  IN_PROGRESS  // Battle started
+  COMPLETED    // Battle finished
+  CANCELLED    // Battle cancelled
+}
+
+enum CosmeticType {
+  AVATAR
+  FRAME
+  BADGE
+  TITLE
+  EFFECT
+}
+
+enum Rarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}

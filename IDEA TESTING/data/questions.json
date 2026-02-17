@@ -1,0 +1,42 @@
+[
+  {
+    "question": "What is the capital of Japan?",
+    "options": ["Seoul", "Beijing", "Tokyo", "Bangkok"],
+    "correctAnswer": 2,
+    "topic": "Geography",
+    "difficulty": "EASY",
+    "explanation": "Tokyo is the capital and most populous city of Japan."
+  },
+  {
+    "question": "Which programming language is known as the 'language of the web'?",
+    "options": ["Python", "JavaScript", "Java", "C++"],
+    "correctAnswer": 1,
+    "topic": "Programming",
+    "difficulty": "EASY",
+    "explanation": "JavaScript is the programming language that runs in web browsers and is essential for web development."
+  },
+  {
+    "question": "What is the largest planet in our solar system?",
+    "options": ["Saturn", "Jupiter", "Neptune", "Uranus"],
+    "correctAnswer": 1,
+    "topic": "Science",
+    "difficulty": "EASY",
+    "explanation": "Jupiter is the largest planet in our solar system with a diameter of about 143,000 kilometers."
+  },
+  {
+    "question": "In what year did World War I begin?",
+    "options": ["1912", "1914", "1916", "1918"],
+    "correctAnswer": 1,
+    "topic": "History",
+    "difficulty": "MEDIUM",
+    "explanation": "World War I began in 1914 and lasted until 1918."
+  },
+  {
+    "question": "What is the result of 12 × 12?",
+    "options": ["124", "144", "156", "132"],
+    "correctAnswer": 1,
+    "topic": "Mathematics",
+    "difficulty": "EASY",
+    "explanation": "12 multiplied by 12 equals 144."
+  }
+]
